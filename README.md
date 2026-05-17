@@ -9,6 +9,7 @@
 * 🇭🇺 Hungarian Character Mapping: Correctly handles regional characters like `Á`, `É`, `Í`, `Ó`, `Ö`, `Ő`, `Ú`, `Ü`, and `Ű`.
 * 🌙 Dynamic Themes: Full Dark Mode and Light Mode styling with system preferences detection.
 * 💾 Utility Tools: Quick action buttons to copy outputs, paste inputs from clipboard, and download translations as `.txt` files.
+* ⭐ Advanced looks: Modern UI, smooth animations
 
 ---
 
