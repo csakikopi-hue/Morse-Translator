@@ -24,6 +24,7 @@ Frontend: HTML5, CSS3 (Modern Variables & Responsive UI), JavaScript (ES6, Web A
 
 1. Prerequisites
 Make sure you have Python 3 installed on your machine.
+Install, then run Morse.html locally!
 
 <img width="1280" height="857" alt="Morse — Signal Translator - Google Chrome 2026  05  17  19_42_37" src="https://github.com/user-attachments/assets/daf175f5-3f45-4574-974b-aea71ea4371e" />
 <img width="1280" height="854" alt="Morse — Signal Translator - Google Chrome 2026  05  17  19_42_47" src="https://github.com/user-attachments/assets/c16d6b4d-bb41-4262-9124-efb437d151f9" />
