@@ -27,22 +27,22 @@ MORSE_CODE = {
 REVERSE_MORSE = {v: k for k, v in MORSE_CODE.items()}
 
 
-def fordito(szoveg):
+def encode(text):
     """Text to Morse code"""
     result = []
-    for ch in szoveg.upper():
+    for ch in text.upper():
         if ch in MORSE_CODE:
             result.append(MORSE_CODE[ch])
         else:
-            return {"error": f"Hiba! A '{ch}' karakter nem támogatott Morse kódban."}
+            return {"error": f"Error! The character '{ch}' is not supported in Morse code."}
     return {"result": ' '.join(result)}
 
 # Note: .upper() already handles á→Á, é→É, ő→Ő etc. in Python
 
 
-def visszafejto(morse_sor):
+def decode(morse_str):
     """Morse code to text - words separated by ' / ', letters by ' '"""
-    words = morse_sor.strip().split('/')
+    words = morse_str.strip().split('/')
     result_words = []
     for word in words:
         word = word.strip()
@@ -54,9 +54,9 @@ def visszafejto(morse_sor):
             if not code:
                 continue
             if not all(c in '.-' for c in code):
-                return {"error": f"Hiba! Érvénytelen morse kód: '{code}'. Csak . és - karakterek engedélyezettek."}
+                return {"error": f"Error! Invalid morse code: '{code}'. Only . and - characters are allowed."}
             if code not in REVERSE_MORSE:
-                return {"error": f"Hiba! Ismeretlen morse kód: '{code}'."}
+                return {"error": f"Error! Unknown morse code: '{code}'."}
             word_str += REVERSE_MORSE[code]
         result_words.append(word_str)
     return {"result": ' '.join(result_words)}
@@ -64,7 +64,7 @@ def visszafejto(morse_sor):
 
 @app.route('/')
 def index():
-    return render_template('input.html')
+    return render_template('Morse.html')
 
 
 @app.route('/convert', methods=['POST'])
@@ -74,13 +74,13 @@ def convert():
     mode = data.get('mode', '1')  # 1 = text to morse, 2 = morse to text
 
     if mode == '1':
-        result = fordito(text_input)
+        result = encode(text_input)
         return jsonify(result)
     elif mode == '2':
-        result = visszafejto(text_input)
+        result = decode(text_input)
         return jsonify(result)
 
-    return jsonify({"error": "Ismeretlen mód"}), 400
+    return jsonify({"error": "Unknown mode"}), 400
 
 
 if __name__ == '__main__':

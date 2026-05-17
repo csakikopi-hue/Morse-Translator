@@ -226,7 +226,10 @@
 
         <button class="convert-btn" onclick="convertText()">Convert</button>
         <div id="result"></div>
-        <button id="copyBtn" onclick="copyResult()">📋 Copy Result</button>
+        <div style="display:flex; gap:10px;">
+            <button id="copyBtn" onclick="copyResult()">📋 Copy Result</button>
+            <button id="playBtn" onclick="playMorse()" style="display:none; flex:0 0 auto; padding:12px 18px; margin-top:15px; background:var(--button-bg); color:var(--button-text); border:none; border-radius:5px; font-size:16px; font-weight:bold; cursor:pointer; transition: background 0.3s;">🔊</button>
+        </div>
     </div>
 
     <script>
@@ -355,6 +358,8 @@
                 resultDiv.textContent = data.result;
                 resultDiv.classList.remove('error');
                 copyBtn.style.display = 'block';
+                // Show play button only if result contains morse (mode 1) or we have morse in input (mode 2)
+                document.getElementById('playBtn').style.display = 'block';
             }
 
             activeButton.classList.remove('glowing');
@@ -386,6 +391,7 @@
             document.getElementById('input').value = '';
             document.getElementById('result').classList.remove('show');
             document.getElementById('copyBtn').style.display = 'none';
+            document.getElementById('playBtn').style.display = 'none';
         }
 
         function copyResult() {
@@ -423,6 +429,78 @@
             const defaultTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             applyTheme(savedTheme || defaultTheme);
         });
+
+        // --- Morse Audio Player ---
+        let isPlaying = false;
+
+        async function playMorse() {
+            if (isPlaying) return;
+
+            // Get the morse code to play
+            // Mode 1: result is morse. Mode 2: input is morse.
+            let morseStr = '';
+            if (currentMode === 1) {
+                morseStr = document.getElementById('result').textContent;
+            } else {
+                morseStr = document.getElementById('input').value;
+            }
+
+            if (!morseStr || morseStr.includes('Error') || morseStr.includes('Processing')) return;
+
+            isPlaying = true;
+            const btn = document.getElementById('playBtn');
+            btn.textContent = '⏹️';
+
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const freq = 600;   // Hz - classic morse tone
+            const dot  = 0.08;  // seconds - ti
+            const dash = dot * 3; // tá
+            const symbolGap = dot;
+            const letterGap = dot * 3;
+            const wordGap   = dot * 7;
+
+            let time = audioCtx.currentTime + 0.1;
+
+            function beep(duration) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0, time);
+                gain.gain.linearRampToValueAtTime(0.5, time + 0.005);
+                gain.gain.setValueAtTime(0.5, time + duration - 0.005);
+                gain.gain.linearRampToValueAtTime(0, time + duration);
+                osc.start(time);
+                osc.stop(time + duration);
+                time += duration;
+            }
+
+            // Parse the morse string: letters separated by space, words by /
+            const tokens = morseStr.split(' ');
+            for (let i = 0; i < tokens.length; i++) {
+                const token = tokens[i];
+                if (token === '/') {
+                    time += wordGap;
+                } else {
+                    for (let j = 0; j < token.length; j++) {
+                        if (token[j] === '.') beep(dot);
+                        else if (token[j] === '-') beep(dash);
+                        if (j < token.length - 1) time += symbolGap;
+                    }
+                    if (i < tokens.length - 1 && tokens[i+1] !== '/') time += letterGap;
+                }
+            }
+
+            // Re-enable button when done
+            const totalTime = (time - audioCtx.currentTime) * 1000;
+            setTimeout(() => {
+                isPlaying = false;
+                btn.textContent = '🔊';
+                audioCtx.close();
+            }, totalTime + 200);
+        }
 
         document.getElementById('input').addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') {
