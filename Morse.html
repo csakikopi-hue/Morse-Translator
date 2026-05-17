@@ -30,7 +30,7 @@
             --surface-bg: #1f2937;
             --border-color: #334155;
             --button-bg: #1e53c5;
-            --button-hover: ##1e53c5;
+            --button-hover: #1e53c5;
             --button-text: #f8fafc;
             --mode-bg: #1f2937;
             --mode-text: #e2e8f0;
@@ -224,15 +224,56 @@
             <button class="mode-btn" onclick="setMode(2)">📡 Morse → Text</button>
         </div>
 
-        <button class="convert-btn" onclick="convertText()">Convert</button>
-        <div id="result"></div>
+       <div id="result"></div>
+        
         <div style="display:flex; gap:10px;">
+          <button id="downloadBtn" onclick="downloadResult()" style="display:none; margin-top:15px; background:var(--button-bg); color:var(--button-text); border:none; border-radius:5px; font-size:16px; font-weight:bold; cursor:pointer; transition: background 0.3s; padding:12px 18px;">💾 Download</button>
             <button id="copyBtn" onclick="copyResult()">📋 Copy Result</button>
             <button id="playBtn" onclick="playMorse()" style="display:none; flex:0 0 auto; padding:12px 18px; margin-top:15px; background:var(--button-bg); color:var(--button-text); border:none; border-radius:5px; font-size:16px; font-weight:bold; cursor:pointer; transition: background 0.3s;">🔊</button>
         </div>
     </div>
 
+
+
     <script>
+        let SpaceMorse = {
+            downtime: 0,
+            Lettertimer: null,
+            IsTapping: false,
+            DotThreshold: 200,
+        };
+
+        document.getElementById('input').addEventListener('keydown', function(e) {
+           if (currentMode === 2 && e.key === ' ' && !e.repeat) {
+            e.preventDefault();
+            SpaceMorse.downtime = Date.now();
+            SpaceMorse.IsTapping = true;
+            this.classList.add('tapping-active');
+            clearTimeout(SpaceMorse.Lettertimer);
+           }
+
+        });
+        document.getElementById('input').addEventListener('keyup', function(e) {
+           if (currentMode === 2 && e.key === ' ' && SpaceMorse.IsTapping) {
+            e.preventDefault();
+            const tapDuration = Date.now() - SpaceMorse.downtime;
+            const morseChar = tapDuration < SpaceMorse.DotThreshold ? '.' : '-';
+            this.value += morseChar;
+            SpaceMorse.IsTapping = false;
+            this.classList.remove('tapping-active');
+            clearTimeout(SpaceMorse.Lettertimer);
+            convertTextRealtime(); // instant convert after . or -
+            SpaceMorse.Lettertimer = setTimeout(() => {
+                this.value += ' ';
+                convertTextRealtime(); // convert again after letter gap space
+            }, 800);
+           }
+        });
+
+        document.getElementById('input').addEventListener('input', function() {
+          setTimeout(convertTextRealtime, 0); 
+        });
+
         let currentMode = 1;
 
         const MORSE_CODE = {
@@ -246,7 +287,6 @@
             '0': '-----', '1': '.----', '2': '..---', '3': '...--',
             '4': '....-', '5': '.....', '6': '-....', '7': '--...',
             '8': '---..',  '9': '----.',
-            // Hungarian special characters
             'Á': '.--.-', 'É': '..-..', 'Í': '..-.-', 'Ó': '---.',
             'Ö': '---.', 'Ő': '----', 'Ú': '..--', 'Ü': '..--',
             'Ű': '..---.',
@@ -256,8 +296,6 @@
             '+': '.-.-.', '-': '-....-', '_': '..--.-', '"': '.-..-.',
             '$': '...-..-', '@': '.--.-.', ' ': '/'
         };
-
-        // Reverse map: morse -> character
         const REVERSE_MORSE = {};
         for (const [char, code] of Object.entries(MORSE_CODE)) {
             REVERSE_MORSE[code] = char;
@@ -277,7 +315,6 @@
         }
 
         function morseToText(morse) {
-            // Words are separated by ' / ', letters by ' '
             const words = morse.trim().split(/\s*\/\s*/);
             const resultWords = [];
             for (const word of words) {
@@ -325,56 +362,95 @@
             const input = document.getElementById('input').value;
             const resultDiv = document.getElementById('result');
             const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
             
             if (input.trim() === '') {
                 resultDiv.textContent = 'Please enter some text!';
                 resultDiv.classList.add('show');
                 copyBtn.style.display = 'none';
+                downloadBtn.style.display = 'none';
                 return;
             }
             
             const activeButton = document.querySelector('.mode-btn.active');
             activeButton.classList.add('glowing');
-            
-            resultDiv.textContent = 'Processing...';
             resultDiv.classList.add('show');
             resultDiv.classList.remove('error');
             
-            // Small delay for UX feedback
             await new Promise(r => setTimeout(r, 150));
 
             let data;
             if (currentMode === 1) {
                 data = textToMorse(input);
             } else {
-                data = morseToText(input);
+                data = morseToText(input, true);
             }
 
             if (data.error) {
                 resultDiv.textContent = data.error;
                 resultDiv.classList.add('error');
                 copyBtn.style.display = 'none';
+                downloadBtn.style.display = 'none';
             } else {
                 resultDiv.textContent = data.result;
                 resultDiv.classList.remove('error');
                 copyBtn.style.display = 'block';
-                // Show play button only if result contains morse (mode 1) or we have morse in input (mode 2)
+                downloadBtn.style.display = 'block';
                 document.getElementById('playBtn').style.display = 'block';
             }
 
             activeButton.classList.remove('glowing');
         }
 
-        async function pasteFromClipboard() {
-            try {
-                const text = await navigator.clipboard.readText();
-                document.getElementById('input').value = text;
-                document.getElementById('result').classList.remove('show');
-                document.getElementById('copyBtn').style.display = 'none';
-            } catch (err) {
-                alert('Could not paste from clipboard. Please copy it manually.');
+        function convertTextRealtime() {
+            const input = document.getElementById('input').value;
+            const resultDiv = document.getElementById('result');
+            const copyBtn = document.getElementById('copyBtn');
+            const playBtn = document.getElementById('playBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            if (input.trim() === '') {
+                resultDiv.classList.remove('show');
+                copyBtn.style.display = 'none';
+                playBtn.style.display = 'none';
+                downloadBtn.style.display = 'none';
+                return;
+            }
+            
+            let data;
+            if (currentMode === 1) {
+                data = textToMorse(input);
+            } else {
+                data = morseToText(input, true);
+            }
+
+            if (data.error) {
+                resultDiv.textContent = data.error;
+                resultDiv.classList.add('error');
+                resultDiv.classList.add('show');
+                copyBtn.style.display = 'none';
+                playBtn.style.display = 'none';
+                downloadBtn.style.display = 'none';
+            } else if (data.result && data.result.trim() !== '') {
+                resultDiv.textContent = data.result;
+                resultDiv.classList.remove('error');
+                resultDiv.classList.add('show');
+                copyBtn.style.display = 'block';
+                playBtn.style.display = 'block';
+                downloadBtn.style.display = 'block';
             }
         }
+
+       async function pasteFromClipboard() {
+    try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById('input').value = text;
+        convertTextRealtime();
+    } catch (err) {
+        alert('Could not paste from clipboard. Please copy it manually.');
+          }
+          }
+        
 
         function copyInput() {
             const text = document.getElementById('input').value;
@@ -392,6 +468,7 @@
             document.getElementById('result').classList.remove('show');
             document.getElementById('copyBtn').style.display = 'none';
             document.getElementById('playBtn').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
         }
 
         function copyResult() {
@@ -408,6 +485,25 @@
             }).catch(() => {
                 alert('Could not copy to clipboard.');
             });
+        }
+
+        function downloadResult() {
+            const text = document.getElementById('result').textContent;
+            if (text.trim() === '' || text === 'Processing...' || text.includes('Please') || text.includes('Error')) {
+                alert('There is no valid result to download!');
+                return;
+            }
+            const modeLabel = currentMode === 1 ? 'text-to-morse' : 'morse-to-text';
+            const fileName = `${modeLabel}-${new Date().toISOString().slice(0,19).replaceAll(':','-')}.txt`;
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
 
         function applyTheme(theme) {
@@ -430,14 +526,11 @@
             applyTheme(savedTheme || defaultTheme);
         });
 
-        // --- Morse Audio Player ---
         let isPlaying = false;
 
         async function playMorse() {
             if (isPlaying) return;
 
-            // Get the morse code to play
-            // Mode 1: result is morse. Mode 2: input is morse.
             let morseStr = '';
             if (currentMode === 1) {
                 morseStr = document.getElementById('result').textContent;
@@ -452,9 +545,9 @@
             btn.textContent = '⏹️';
 
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const freq = 600;   // Hz - classic morse tone
-            const dot  = 0.08;  // seconds - ti
-            const dash = dot * 3; // tá
+            const freq = 600;   
+            const dot  = 0.08;  
+            const dash = dot * 3; 
             const symbolGap = dot;
             const letterGap = dot * 3;
             const wordGap   = dot * 7;
@@ -477,7 +570,6 @@
                 time += duration;
             }
 
-            // Parse the morse string: letters separated by space, words by /
             const tokens = morseStr.split(' ');
             for (let i = 0; i < tokens.length; i++) {
                 const token = tokens[i];
@@ -493,7 +585,6 @@
                 }
             }
 
-            // Re-enable button when done
             const totalTime = (time - audioCtx.currentTime) * 1000;
             setTimeout(() => {
                 isPlaying = false;
