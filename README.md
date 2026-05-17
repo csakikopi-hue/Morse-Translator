@@ -1,30 +1,59 @@
-📡 Morse Translator
+📡 Morse — Signal Translator
 
-✨ Features
-
-* 🔄 Dual-Mode Conversion: Instantly translate Text → Morse Code or Morse Code → Text.
-* ⚡ Real-Time Processing: Converts instantly as you type without mandatory page reloads.
-* 🔊 Audio Playback Engine: Synthesizes accurate audio `.` (dots) and `-` (dashes) directly in the browser using the Web Audio API.
-* ⌨️ Spacebar Tap Interpreter: Translate Morse manually by tapping the spacebar inside the input box (Short tap = dot, Long hold = dash). It auto-detects gaps to separate letters!
-* 🇭🇺 Hungarian Character Mapping: Correctly handles regional characters like `Á`, `É`, `Í`, `Ó`, `Ö`, `Ő`, `Ú`, `Ü`, and `Ű`.
-* 🌙 Dynamic Themes: Full Dark Mode and Light Mode styling with system preferences detection.
-* 💾 Utility Tools: Quick action buttons to copy outputs, paste inputs from clipboard, and download translations as `.txt` files.
-* ⭐ Advanced looks: Modern UI, smooth animations
+A premium, minimalistic, and highly intuitive web application designed to bridge the gap between traditional telegraphy and modern digital text. Featuring a real-time translation engine, dynamic multi-language localization, an active audio synthesizer, and an interactive spacebar rhythm interpreter.
 
 ---
 
-🛠️ Tech Stack
+## ✨ Features
 
-Backend: Python 3, Flask
-Frontend: HTML5, CSS3 (Modern Variables & Responsive UI), JavaScript (ES6, Web Audio API)
+### 🔄 Dual-Mode Conversion
+* **Text** ➔ Morse Code: Instantly encodes standard text into standardized dots (`·`) and dashes (`–`).
+* **Morse** Code ➔ Text: Decodes Morse signals back into legible text. Supports forward slashes (`/`) to seamlessly separate words.
+
+### ⚡ Real-Time Processing
+* No submit buttons or page reloads required. The optimized translation pipeline evaluates and parses your input on the fly as you type.
+
+### 🔊 Audio Playback Engine
+* Synthesizes perfectly timed, clean sine wave audio frequencies ($620\text{ Hz}$) using the native browser **Web Audio API.
+* Features a dynamic CSS audio waveform visualizer that animates perfectly in sync with the auditory signals.
+
+### ⌨️ Interactive Spacebar Tap Interpreter
+* Rhythm Detection: Switch to Morse mode and turn your spacebar into a virtual telegraph key!
+* Smart Gaps: A short tap ($< 200\text{ ms}$) registers a **dot** (`·`).
+  * A longer hold ($\ge 200\text{ ms}$) registers a **dash** (`–`).
+  * Pausing for $750\text{ ms}$ automatically inserts a character gap space.
+* Features a live oscillator that generates real-time audio feedback *while* you press down on the key.
+
+### 🌍 Dynamic Localization & Character Mapping
+* **On-the-Fly Translation:** Switch the entire interface language instantly between **English**, **German (Deutsch)**, and **Hungarian (Magyar)**.
+* **Extended Character Sets:** Correctly handles regional character mappings (e.g., `Á` ➔ `.--.-` and `É` ➔ `..-..`).
+
+### 🌙 Dynamic Luxury UI & Themes
+* Designed with a modern, high-contrast palette, fluid micro-interactions, soft radial ambient glows, and responsive layouts.
+* Implements seamless **Dark Mode** and **Light Mode** styling with manual toggle overrides and automatic system preference tracking.
+
+### 💾 Utility & Production Tools
+* **One-Click Clipboard Actions:** Quick buttons to instantly paste input text, copy input text, or copy generated results.
+* **Result File Export:** Download translations directly as tailored `.txt` files with context-aware, localized naming conventions based on the active language.
 
 ---
 
-🚀 Quick Start
+## 🛠️ Tech Stack
 
-1. Prerequisites
-Make sure you have Python 3 installed on your machine.
-Install, then run Morse.html locally!
+* **Frontend:** HTML5, CSS3 (Modern CSS Variables, Flexbox/Grid, Keyframe Animations)
+* **Scripting & Logic:** JavaScript (ES6+, LocalStorage, Web Audio API Pipeline)
+* **Typography:** Google Fonts (*DM Sans, DM Mono, Playfair Display*)
+
+---
+
+## 🚀 Quick Start
+
+Since this application is fully self-contained within a single client-side architecture, **no server setup or complex backend configuration is required**. You can launch it directly on any modern machine.
+
+### Prerequisites
+* A modern web browser (Google Chrome, Mozilla Firefox, Microsoft Edge, or Apple Safari) with Web Audio API support enabled.
+
+### Running Locally
 
 <img width="1280" height="857" alt="Morse — Signal Translator - Google Chrome 2026  05  17  19_42_37" src="https://github.com/user-attachments/assets/daf175f5-3f45-4574-974b-aea71ea4371e" />
 <img width="1280" height="854" alt="Morse — Signal Translator - Google Chrome 2026  05  17  19_42_47" src="https://github.com/user-attachments/assets/c16d6b4d-bb41-4262-9124-efb437d151f9" />
