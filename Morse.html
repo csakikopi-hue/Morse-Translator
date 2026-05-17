@@ -763,17 +763,41 @@ const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 applyTheme(saved ? saved==='dark' : prefersDark);
 
 let tapDown = 0, tapTimer = null;
+let tapOsc = null, tapGain = null, tapCtx = null;
+
+function startTapSound() {
+  tapCtx = new (window.AudioContext || window.webkitAudioContext)();
+  tapOsc = tapCtx.createOscillator();
+  tapGain = tapCtx.createGain();
+  tapOsc.connect(tapGain);
+  tapGain.connect(tapCtx.destination);
+  tapOsc.frequency.value = 620;
+  tapOsc.type = 'sine';
+  tapGain.gain.setValueAtTime(0, tapCtx.currentTime);
+  tapGain.gain.linearRampToValueAtTime(0.45, tapCtx.currentTime + 0.01);
+  tapOsc.start();
+}
+
+function stopTapSound() {
+  if (!tapCtx) return;
+  tapGain.gain.linearRampToValueAtTime(0, tapCtx.currentTime + 0.01);
+  setTimeout(() => { try { tapCtx.close(); } catch(e){} tapCtx = null; }, 50);
+}
+
 inputEl.addEventListener('keydown', e => {
   if (currentMode!==2 || e.key!==' ' || e.repeat) return;
   e.preventDefault();
   tapDown = Date.now();
   inputEl.classList.add('tapping');
   clearTimeout(tapTimer);
+  startTapSound(); // hang kezdődik lenyomáskor
 });
+
 inputEl.addEventListener('keyup', e => {
   if (currentMode!==2 || e.key!==' ') return;
   e.preventDefault();
   const dur = Date.now() - tapDown;
+  stopTapSound(); // hang megáll felengedéskor
   inputEl.value += dur < 200 ? '.' : '-';
   inputEl.classList.remove('tapping');
   convert();
