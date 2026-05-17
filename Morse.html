@@ -123,6 +123,7 @@ body::before {
 }
 
 .card {
+  position: relative; /* Ez kell, hogy a gombok a kártyához igazodjanak */
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -477,26 +478,29 @@ textarea.tapping { box-shadow: 0 0 0 3px rgba(232,200,122,0.3) !important; borde
 <body>
 
 <button class="theme-btn" id="themeBtn" title="Toggle theme">☀️</button>
+<div class="lang-selector-fixed" id="langSelectorFixed" style="position:fixed; top:1.5rem; left:1.5rem; display:flex; gap:6px; z-index:10;"></div>
 
 <div class="app">
   <div class="header">
-    <h1>Morse <span>Code</span></h1>
+    <h1 id="mainTitle">Morse <span>Code</span></h1>
     <div class="signal-dots">
       <span>·</span><span>–</span><span>·</span><span>–</span>
     </div>
   </div>
 
   <div class="card">
-    <div class="mode-switch">
+    <div id="langSelectorCard" style="display:none"></div>
+
+    <div class="mode-switch" style="margin-top: 1.5rem;">
       <button class="mode-btn active" id="modeText" onclick="setMode(1)">
-        <span class="icon">Aa</span> Text → Morse
+        <span class="icon">Aa</span> <span id="lblModeText">Text → Morse</span>
       </button>
       <button class="mode-btn" id="modeMorse" onclick="setMode(2)">
-        <span class="icon">· –</span> Morse → Text
+        <span class="icon">· –</span> <span id="lblModeMorse">Morse → Text</span>
       </button>
     </div>
 
-    <div class="field-label">Input</div>
+    <div class="field-label" id="lblInput">Input</div>
     <div class="textarea-wrap">
       <textarea id="inputArea" placeholder="Type your message here…" spellcheck="false"></textarea>
       <span class="char-count" id="charCount">0</span>
@@ -504,9 +508,9 @@ textarea.tapping { box-shadow: 0 0 0 3px rgba(232,200,122,0.3) !important; borde
     <p class="tap-hint" id="tapHint">· Space bar = dot &nbsp;|&nbsp; hold Space = dash &nbsp;|&nbsp; pause = letter gap</p>
 
     <div class="input-actions">
-      <button class="act-btn" onclick="pasteFromClipboard()">⌘ Paste</button>
-      <button class="act-btn" onclick="copyInput()">⎘ Copy input</button>
-      <button class="act-btn danger" onclick="clearInput()">✕ Clear</button>
+      <button class="act-btn" id="btnPaste" onclick="pasteFromClipboard()">⌘ Paste</button>
+      <button class="act-btn" id="btnCopyIn" onclick="copyInput()">⎘ Copy input</button>
+      <button class="act-btn danger" id="btnClear" onclick="clearInput()">✕ Clear</button>
     </div>
 
     <div class="divider">
@@ -515,15 +519,15 @@ textarea.tapping { box-shadow: 0 0 0 3px rgba(232,200,122,0.3) !important; borde
       <div class="divider-line"></div>
     </div>
 
-    <div class="field-label">Output</div>
+    <div class="field-label" id="lblOutput">Output</div>
     <div class="result-wrap">
       <div class="result-box" id="resultBox">
         <p class="result-placeholder" id="resultPlaceholder">Translation will appear here…</p>
         <div class="result-text" id="resultText"></div>
       </div>
       <div class="result-actions" id="resultActions">
-        <button class="res-btn accent-btn" onclick="copyResult()">⎘ Copy</button>
-        <button class="res-btn" onclick="downloadResult()">↓ Download</button>
+        <button class="res-btn accent-btn" id="btnCopyOut" onclick="copyResult()">⎘ Copy</button>
+        <button class="res-btn" id="btnDownload" onclick="downloadResult()">↓ Download</button>
         <button class="res-btn play-btn" id="playBtn" onclick="togglePlay()">
           ▶ Play
           <span class="waveform" id="waveform">
@@ -548,6 +552,129 @@ const MORSE = {
   'Á':'.--.-','É':'..-..',
   '.':'.-.-.-',',':'--..--','?':'..--..','\'':'.----.','!':'-.-.--','/':'-..-.','(':'-.--.',')':"-.--.-",'&':'.-...', ':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.', '-':'-....-','"':'.-..-.','@':'.--.-.', ' ':'/'
 };
+
+// Jelenlegi nyelv — alapértelmezett az 'en' (angol)
+let currentLang = localStorage.getItem('lang') || 'en';
+
+// Move lang buttons to fixed top-left
+const langFixed = document.getElementById('langSelectorFixed');
+if (langFixed) {
+  ['en','de','hu'].forEach(l => {
+    const b = document.createElement('button');
+    b.textContent = l.toUpperCase();
+    b.id = 'lang-' + l;
+    b.className = 'lang-btn';
+    b.setAttribute('style', `background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 5px 9px; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease;`);
+    b.onclick = () => changeLang(l);
+    langFixed.appendChild(b);
+  });
+}
+
+
+// Nyelvi szótár a prémium felület elemeihez
+const TRANSLATIONS = {
+    en: {
+        title: "Morse <span>Code</span>",
+        placeholderText: "Type your message here…",
+        placeholderMorse: "Enter morse code… (e.g. ... --- ... / use / for spaces)",
+        placeholderResult: "Translation will appear here…",
+        lblInput: "Input",
+        lblOutput: "Output",
+        btnPaste: "⌘ Paste",
+        btnCopyIn: "⎘ Copy input",
+        btnClear: "✕ Clear",
+        modeTextMorse: "Text → Morse",
+        modeMorseText: "Morse → Text",
+        btnCopyOut: "⎘ Copy",
+        btnDownload: "↓ Download",
+        downloadFilename: "morse_translation_en.txt"
+    },
+    de: {
+        title: "Morse <span>Code</span>",
+        placeholderText: "Geben Sie hier Ihre Nachricht ein…",
+        placeholderMorse: "Morsecode eingeben… (z. B. ... --- ... / verwenden Sie / für Leerzeichen)",
+        placeholderResult: "Die Übersetzung erscheint hier…",
+        lblInput: "Eingabe",
+        lblOutput: "Ausgabe",
+        btnPaste: "⌘ Einfügen",
+        btnCopyIn: "⎘ Eingabe kopieren",
+        btnClear: "✕ Löschen",
+        modeTextMorse: "Text → Morse",
+        modeMorseText: "Morse → Text",
+        btnCopyOut: "⎘ Kopieren",
+        btnDownload: "↓ Herunterladen",
+        downloadFilename: "morse_uebersetzung_de.txt"
+    },
+    hu: {
+        title: "Morse <span>Kód</span>",
+        placeholderText: "Írd ide az üzeneted…",
+        placeholderMorse: "Adj meg morze kódot… (pl. ... --- ... / a szavak közé tégy / jelet)",
+        placeholderResult: "A fordítás itt fog megjelenni…",
+        lblInput: "Bemenet",
+        lblOutput: "Kimenet",
+        btnPaste: "⌘ Beillesztés",
+        btnCopyIn: "⎘ Bemenet másolása",
+        btnClear: "✕ Törlés",
+        modeTextMorse: "Szöveg → Morse",
+        modeMorseText: "Morse → Szöveg",
+        btnCopyOut: "⎘ Másolás",
+        btnDownload: "↓ Letöltés",
+        downloadFilename: "morse_forditas_hu.txt"
+    }
+};
+
+// UI szövegek azonnali frissítése
+function updateUILanguage() {
+    const langData = TRANSLATIONS[currentLang];
+    
+    document.getElementById('mainTitle').innerHTML = langData.title;
+    document.getElementById('lblInput').textContent = langData.lblInput;
+    document.getElementById('lblOutput').textContent = langData.lblOutput;
+    
+    document.getElementById('btnPaste').innerHTML = langData.btnPaste;
+    document.getElementById('btnCopyIn').innerHTML = langData.btnCopyIn;
+    document.getElementById('btnClear').innerHTML = langData.btnClear;
+    
+    document.getElementById('lblModeText').textContent = langData.modeTextMorse;
+    document.getElementById('lblModeMorse').textContent = langData.modeMorseText;
+    
+    document.getElementById('btnCopyOut').innerHTML = langData.btnCopyOut;
+    document.getElementById('btnDownload').innerHTML = langData.btnDownload;
+    
+    resultPlaceholder.textContent = langData.placeholderResult;
+
+    if (currentMode === 1) {
+        inputEl.placeholder = langData.placeholderText;
+    } else {
+        inputEl.placeholder = langData.placeholderMorse;
+    }
+
+    // Nyelvválasztó gombok stílusának kiemelése (arany ragyogás)
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.style.borderColor = 'var(--border)';
+        btn.style.background = 'var(--surface2)';
+        btn.style.color = 'var(--text-muted)';
+        btn.style.boxShadow = 'none';
+    });
+    
+    const activeBtn = document.getElementById(`lang-${currentLang}`);
+    if (activeBtn) {
+        activeBtn.style.borderColor = 'var(--accent)';
+        activeBtn.style.background = 'var(--accent-dim)';
+        activeBtn.style.color = 'var(--accent)';
+        activeBtn.style.boxShadow = '0 0 10px var(--accent-glow)';
+    }
+}
+
+function changeLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    updateUILanguage();
+    if (inputEl.value.trim() !== '') {
+        convert();
+    }
+}
+
 const RMORSE = Object.fromEntries(Object.entries(MORSE).map(([k,v])=>[v,k]));
 
 let currentMode = 1;
@@ -648,11 +775,11 @@ function setMode(m) {
   currentMode = m;
   document.getElementById('modeText').classList.toggle('active', m===1);
   document.getElementById('modeMorse').classList.toggle('active', m===2);
-  inputEl.placeholder = m === 1 ? 'Type your message here…' : 'Enter morse code… (e.g. ... --- ... / use / for spaces)';
   tapHint.classList.toggle('visible', m===2);
   inputEl.value = '';
   charCount.textContent = '0';
   showPlaceholder();
+  updateUILanguage(); // Ez frissíti a placeholderöket módváltáskor a jó nyelvre
   stopPlay();
 }
 
@@ -689,8 +816,7 @@ function copyResult() {
 function downloadResult() {
   const t = resultText.textContent;
   if (!t || resultText.classList.contains('error-text')) return;
-  const label = currentMode===1 ? 'text-to-morse' : 'morse-to-text';
-  const fname = `${label}-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+  const fname = TRANSLATIONS[currentLang].downloadFilename; // Nyelvhez igazított fájlnév
   const a = Object.assign(document.createElement('a'), {
     href: URL.createObjectURL(new Blob([t], {type:'text/plain'})),
     download: fname
@@ -762,6 +888,9 @@ const saved = localStorage.getItem('morse-theme');
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 applyTheme(saved ? saved==='dark' : prefersDark);
 
+// Inicializálás az oldal betöltésekor
+updateUILanguage();
+
 let tapDown = 0, tapTimer = null;
 let tapOsc = null, tapGain = null, tapCtx = null;
 
@@ -790,14 +919,14 @@ inputEl.addEventListener('keydown', e => {
   tapDown = Date.now();
   inputEl.classList.add('tapping');
   clearTimeout(tapTimer);
-  startTapSound(); // hang kezdődik lenyomáskor
+  startTapSound();
 });
 
 inputEl.addEventListener('keyup', e => {
   if (currentMode!==2 || e.key!==' ') return;
   e.preventDefault();
   const dur = Date.now() - tapDown;
-  stopTapSound(); // hang megáll felengedéskor
+  stopTapSound();
   inputEl.value += dur < 200 ? '.' : '-';
   inputEl.classList.remove('tapping');
   convert();
