@@ -1,6 +1,6 @@
 📡 Morse — Signal Translator
 
-A premium, minimalistic, and highly intuitive web application designed to bridge the gap between traditional telegraphy and modern digital text. Featuring a real-time translation engine, dynamic multi-language localization, an active audio synthesizer, and an interactive spacebar rhythm interpreter.
+A **premium, minimalistic**, and highly intuitive web application designed to bridge the gap between traditional telegraphy and modern digital text. Featuring a **real-time translation** engine, **dynamic multi-language** localization, an active **audio synthesizer**, and an interactive **spacebar rhythm interpreter**.
 
 ---
 
@@ -52,8 +52,6 @@ Since this application is fully self-contained within a single client-side archi
 
 ### Prerequisites
 * A modern web browser (Google Chrome, Mozilla Firefox, Microsoft Edge, or Apple Safari) with Web Audio API support enabled.
-
-### Running Locally
 
 <img width="1280" height="857" alt="Morse — Signal Translator - Google Chrome 2026  05  17  19_42_37" src="https://github.com/user-attachments/assets/daf175f5-3f45-4574-974b-aea71ea4371e" />
 <img width="1280" height="854" alt="Morse — Signal Translator - Google Chrome 2026  05  17  19_42_47" src="https://github.com/user-attachments/assets/c16d6b4d-bb41-4262-9124-efb437d151f9" />
