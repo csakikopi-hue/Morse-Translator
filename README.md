@@ -26,7 +26,7 @@ A **premium, minimalistic**, and highly intuitive web application designed to br
 * Click the **button . or -** in **Morse->Text** to type with the Mouse
 
 ### 🌍 Dynamic Localization & Character Mapping
-* **On-the-Fly Translation:** Switch the entire interface language instantly between **English**, **German (Deutsch)**, and **Hungarian (Magyar)**.
+* **On-the-Fly Translation:** Switch the entire interface language instantly between **English**, **German**, **Hungarian**, .**Spanish**, **French**, **Chienese**
 * **Extended Character Sets:** Correctly handles regional character mappings (e.g., `Á` ➔ `.--.-` and `É` ➔ `..-..`).
 
 ### 🌙 Dynamic Luxury UI & Themes
