@@ -17,12 +17,13 @@ A **premium, minimalistic**, and highly intuitive web application designed to br
 * Synthesizes perfectly timed, clean sine wave audio frequencies ($620\text{ Hz}$) using the native browser **Web Audio API.
 * Features a dynamic CSS audio waveform visualizer that animates perfectly in sync with the auditory signals.
 
-### ⌨️ Interactive Spacebar Tap Interpreter
+### ⌨️ Interactive Spacebar and Mouse Tap Interpreter
 * Rhythm Detection: Switch to Morse mode and turn your spacebar into a virtual telegraph key!
 * Smart Gaps: A short tap ($< 200\text{ ms}$) registers a **dot** (`·`).
   * A longer hold ($\ge 200\text{ ms}$) registers a **dash** (`–`).
   * Pausing for $750\text{ ms}$ automatically inserts a character gap space.
 * Features a live oscillator that generates real-time audio feedback *while* you press down on the key.
+* Click the **button . or -** in **Morse->Text** to type with the Mouse
 
 ### 🌍 Dynamic Localization & Character Mapping
 * **On-the-Fly Translation:** Switch the entire interface language instantly between **English**, **German (Deutsch)**, and **Hungarian (Magyar)**.
@@ -55,5 +56,7 @@ Since this application is fully self-contained within a single client-side archi
 
 <img width="1280" height="857" alt="Morse — Signal Translator - Google Chrome 2026  05  17  19_42_37" src="https://github.com/user-attachments/assets/daf175f5-3f45-4574-974b-aea71ea4371e" />
 <img width="1280" height="854" alt="Morse — Signal Translator - Google Chrome 2026  05  17  19_42_47" src="https://github.com/user-attachments/assets/c16d6b4d-bb41-4262-9124-efb437d151f9" />
+<img width="1259" height="860" alt="Google Gemini - Google Chrome 2026  05  18  15_40_03" src="https://github.com/user-attachments/assets/b26759bb-9694-4cd3-9330-34f3e25ed6aa" />
+<img width="1264" height="857" alt="Google Gemini - Google Chrome 2026  05  18  15_40_10" src="https://github.com/user-attachments/assets/aeee0ba2-f61e-490f-af32-9867c3f1fab5" />
 
 
