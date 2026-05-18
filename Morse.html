@@ -123,7 +123,7 @@ body::before {
 }
 
 .card {
-  position: relative; /* Ez kell, hogy a gombok a kártyához igazodjanak */
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -177,7 +177,6 @@ body::before {
 .mode-btn.active .icon { transform: scale(1.15); }
 .mode-btn:not(.active):hover { color: var(--text); background: rgba(255,255,255,0.03); }
 
-/* Label */
 .field-label {
   font-family: var(--font-mono);
   font-size: 10.5px;
@@ -444,7 +443,6 @@ textarea.tapping { box-shadow: 0 0 0 3px rgba(232,200,122,0.3) !important; borde
   50% { transform: scaleY(1); }
 }
 
-/* Copied flash */
 @keyframes flash {
   0% { background: var(--accent-glow); }
   100% { background: transparent; }
@@ -501,17 +499,23 @@ textarea.tapping { box-shadow: 0 0 0 3px rgba(232,200,122,0.3) !important; borde
     </div>
 
     <div class="field-label" id="lblInput">Input</div>
-    <div class="textarea-wrap">
-      <textarea id="inputArea" placeholder="Type your message here…" spellcheck="false"></textarea>
-      <span class="char-count" id="charCount">0</span>
-    </div>
-    <p class="tap-hint" id="tapHint">· Space bar = dot &nbsp;|&nbsp; hold Space = dash &nbsp;|&nbsp; pause = letter gap</p>
+<div class="textarea-wrap">
+  <textarea id="inputArea" placeholder="Type your message here…" spellcheck="false"></textarea>
+  <span class="char-count" id="charCount">0</span>
+</div>
 
-    <div class="input-actions">
-      <button class="act-btn" id="btnPaste" onclick="pasteFromClipboard()">⌘ Paste</button>
-      <button class="act-btn" id="btnCopyIn" onclick="copyInput()">⎘ Copy input</button>
-      <button class="act-btn danger" id="btnClear" onclick="clearInput()">✕ Clear</button>
-    </div>
+<div id="tapClick" style="display:none; gap:10px; margin-top:10px; margin-bottom:10px;">
+  <button onclick="tapClick('.')" style="flex:1; padding:18px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:var(--radius); font-family:var(--font-mono); font-size:22px; cursor:pointer; transition:all 0.2s;">·</button>
+  <button onclick="tapClick('-')" style="flex:1; padding:18px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:var(--radius); font-family:var(--font-mono); font-size:22px; cursor:pointer; transition:all 0.2s;">−</button>
+</div>
+
+<p class="tap-hint" id="tapHint">· Space bar = dot &nbsp;|&nbsp; hold Space = dash &nbsp;|&nbsp; pause = letter gap</p>
+
+<div class="input-actions">
+  <button class="act-btn" id="btnPaste" onclick="pasteFromClipboard()">⌘ Paste</button>
+  <button class="act-btn" id="btnCopyIn" onclick="copyInput()">⎘ Copy input</button>
+  <button class="act-btn danger" id="btnClear" onclick="clearInput()">✕ Clear</button>
+</div>
 
     <div class="divider">
       <div class="divider-line"></div>
@@ -553,10 +557,8 @@ const MORSE = {
   '.':'.-.-.-',',':'--..--','?':'..--..','\'':'.----.','!':'-.-.--','/':'-..-.','(':'-.--.',')':"-.--.-",'&':'.-...', ':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.', '-':'-....-','"':'.-..-.','@':'.--.-.', ' ':'/'
 };
 
-// Jelenlegi nyelv — alapértelmezett az 'en' (angol)
 let currentLang = localStorage.getItem('lang') || 'en';
 
-// Move lang buttons to fixed top-left
 const langFixed = document.getElementById('langSelectorFixed');
 if (langFixed) {
   ['en','de','hu'].forEach(l => {
@@ -571,7 +573,6 @@ if (langFixed) {
 }
 
 
-// Nyelvi szótár a prémium felület elemeihez
 const TRANSLATIONS = {
     en: {
         title: "Morse <span>Code</span>",
@@ -623,7 +624,6 @@ const TRANSLATIONS = {
     }
 };
 
-// UI szövegek azonnali frissítése
 function updateUILanguage() {
     const langData = TRANSLATIONS[currentLang];
     
@@ -649,7 +649,6 @@ function updateUILanguage() {
         inputEl.placeholder = langData.placeholderMorse;
     }
 
-    // Nyelvválasztó gombok stílusának kiemelése (arany ragyogás)
     document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.style.borderColor = 'var(--border)';
         btn.style.background = 'var(--surface2)';
@@ -773,14 +772,32 @@ function showError(msg) {
 
 function setMode(m) {
   currentMode = m;
-  document.getElementById('modeText').classList.toggle('active', m===1);
-  document.getElementById('modeMorse').classList.toggle('active', m===2);
-  tapHint.classList.toggle('visible', m===2);
+  document.getElementById('modeText').classList.toggle('active', m === 1);
+  document.getElementById('modeMorse').classList.toggle('active', m === 2);
+  tapHint.classList.toggle('visible', m === 2);
   inputEl.value = '';
   charCount.textContent = '0';
   showPlaceholder();
-  updateUILanguage(); // Ez frissíti a placeholderöket módváltáskor a jó nyelvre
+  updateUILanguage(); 
   stopPlay();
+  
+  document.getElementById('tapClick').style.display = m === 2 ? 'flex' : 'none';
+}
+
+function tapClick(char) {
+  if (currentMode !== 2) return;
+  startTapSound();
+  setTimeout(() => {
+    stopTapSound();
+  }, char === '.' ? 75 : 225);
+  inputEl.value += char;
+  clearTimeout(tapTimer);
+  convert();
+  
+  tapTimer = setTimeout(() => {
+    inputEl.value += ' ';
+    convert();
+  }, 750);
 }
 
 function clearInput() {
@@ -816,7 +833,7 @@ function copyResult() {
 function downloadResult() {
   const t = resultText.textContent;
   if (!t || resultText.classList.contains('error-text')) return;
-  const fname = TRANSLATIONS[currentLang].downloadFilename; // Nyelvhez igazított fájlnév
+  const fname = TRANSLATIONS[currentLang].downloadFilename;
   const a = Object.assign(document.createElement('a'), {
     href: URL.createObjectURL(new Blob([t], {type:'text/plain'})),
     download: fname
@@ -888,29 +905,48 @@ const saved = localStorage.getItem('morse-theme');
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 applyTheme(saved ? saved==='dark' : prefersDark);
 
-// Inicializálás az oldal betöltésekor
 updateUILanguage();
 
 let tapDown = 0, tapTimer = null;
-let tapOsc = null, tapGain = null, tapCtx = null;
 
-function startTapSound() {
+// ÚJ, STABIL HANGKEZELŐ RENDSZER (SEMMILYEN GYORS KATTINTÁSTÓL NEM AKAD BE)
+let tapCtx = null;
+let tapOsc = null;
+let tapGain = null;
+
+function initTapAudio() {
+  if (tapCtx) return;
+  
   tapCtx = new (window.AudioContext || window.webkitAudioContext)();
   tapOsc = tapCtx.createOscillator();
   tapGain = tapCtx.createGain();
+  
   tapOsc.connect(tapGain);
   tapGain.connect(tapCtx.destination);
+  
   tapOsc.frequency.value = 620;
   tapOsc.type = 'sine';
+  
   tapGain.gain.setValueAtTime(0, tapCtx.currentTime);
-  tapGain.gain.linearRampToValueAtTime(0.45, tapCtx.currentTime + 0.01);
   tapOsc.start();
 }
 
+function startTapSound() {
+  initTapAudio();
+  if (tapCtx && tapCtx.state === 'suspended') {
+    tapCtx.resume();
+  }
+  if (tapGain) {
+    tapGain.gain.cancelScheduledValues(tapCtx.currentTime);
+    tapGain.gain.linearRampToValueAtTime(0.45, tapCtx.currentTime + 0.005);
+  }
+}
+
 function stopTapSound() {
-  if (!tapCtx) return;
-  tapGain.gain.linearRampToValueAtTime(0, tapCtx.currentTime + 0.01);
-  setTimeout(() => { try { tapCtx.close(); } catch(e){} tapCtx = null; }, 50);
+  if (tapCtx && tapGain) {
+    tapGain.gain.cancelScheduledValues(tapCtx.currentTime);
+    tapGain.gain.linearRampToValueAtTime(0, tapCtx.currentTime + 0.01);
+  }
 }
 
 inputEl.addEventListener('keydown', e => {
