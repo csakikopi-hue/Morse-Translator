@@ -476,7 +476,8 @@ textarea.tapping { box-shadow: 0 0 0 3px rgba(232,200,122,0.3) !important; borde
 <body>
 
 <button class="theme-btn" id="themeBtn" title="Toggle theme">☀️</button>
-<div class="lang-selector-fixed" id="langSelectorFixed" style="position:fixed; top:1.5rem; left:1.5rem; display:flex; gap:6px; z-index:10;"></div>
+
+<div class="lang-selector-fixed" id="langSelectorFixed" style="position:fixed; top:1.5rem; left:1.5rem; display:flex; gap:6px; z-index:10; max-width: 300px; flex-wrap: wrap;"></div>
 
 <div class="app">
   <div class="header">
@@ -487,9 +488,7 @@ textarea.tapping { box-shadow: 0 0 0 3px rgba(232,200,122,0.3) !important; borde
   </div>
 
   <div class="card">
-    <div id="langSelectorCard" style="display:none"></div>
-
-    <div class="mode-switch" style="margin-top: 1.5rem;">
+    <div class="mode-switch">
       <button class="mode-btn active" id="modeText" onclick="setMode(1)">
         <span class="icon">Aa</span> <span id="lblModeText">Text → Morse</span>
       </button>
@@ -557,23 +556,25 @@ const MORSE = {
   '.':'.-.-.-',',':'--..--','?':'..--..','\'':'.----.','!':'-.-.--','/':'-..-.','(':'-.--.',')':"-.--.-",'&':'.-...', ':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.', '-':'-....-','"':'.-..-.','@':'.--.-.', ' ':'/'
 };
 
-let currentLang = localStorage.getItem('lang') || 'en';
-
-const langFixed = document.getElementById('langSelectorFixed');
-if (langFixed) {
-  ['en','de','hu'].forEach(l => {
-    const b = document.createElement('button');
-    b.textContent = l.toUpperCase();
-    b.id = 'lang-' + l;
-    b.className = 'lang-btn';
-    b.setAttribute('style', `background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 5px 9px; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease;`);
-    b.onclick = () => changeLang(l);
-    langFixed.appendChild(b);
-  });
-}
-
+let currentLang = localStorage.getItem('lang') || 'hu';
 
 const TRANSLATIONS = {
+    hu: {
+        title: "Morse <span>Kód</span>",
+        placeholderText: "Írd ide az üzeneted…",
+        placeholderMorse: "Adj meg morze kódot… (pl. ... --- ... / a szavak közé tégy / jelet)",
+        placeholderResult: "A fordítás itt fog megjelenni…",
+        lblInput: "Bemenet",
+        lblOutput: "Kimenet",
+        btnPaste: "⌘ Beillesztés",
+        btnCopyIn: "⎘ Bemenet másolása",
+        btnClear: "✕ Törlés",
+        modeTextMorse: "Szöveg → Morse",
+        modeMorseText: "Morse → Szöveg",
+        btnCopyOut: "⎘ Másolás",
+        btnDownload: "↓ Letöltés",
+        downloadFilename: "morse_forditas_hu.txt"
+    },
     en: {
         title: "Morse <span>Code</span>",
         placeholderText: "Type your message here…",
@@ -606,23 +607,69 @@ const TRANSLATIONS = {
         btnDownload: "↓ Herunterladen",
         downloadFilename: "morse_uebersetzung_de.txt"
     },
-    hu: {
-        title: "Morse <span>Kód</span>",
-        placeholderText: "Írd ide az üzeneted…",
-        placeholderMorse: "Adj meg morze kódot… (pl. ... --- ... / a szavak közé tégy / jelet)",
-        placeholderResult: "A fordítás itt fog megjelenni…",
-        lblInput: "Bemenet",
-        lblOutput: "Kimenet",
-        btnPaste: "⌘ Beillesztés",
-        btnCopyIn: "⎘ Bemenet másolása",
-        btnClear: "✕ Törlés",
-        modeTextMorse: "Szöveg → Morse",
-        modeMorseText: "Morse → Szöveg",
-        btnCopyOut: "⎘ Másolás",
-        btnDownload: "↓ Letöltés",
-        downloadFilename: "morse_forditas_hu.txt"
+    ru: {
+        title: "Морзе <span>Код</span>",
+        placeholderText: "Введите ваше сообщение здесь…",
+        placeholderMorse: "Введите код Морзе… (например, ... --- ... / используйте / для пробелов)",
+        placeholderResult: "Перевод появится здесь…",
+        lblInput: "Ввод",
+        lblOutput: "Вывод",
+        btnPaste: "⌘ Вставить",
+        btnCopyIn: "⎘ Копировать ввод",
+        btnClear: "✕ Очистить",
+        modeTextMorse: "Текст → Морзе",
+        modeMorseText: "Морзе → Текст",
+        btnCopyOut: "⎘ Копировать",
+        btnDownload: "↓ Скачать",
+        downloadFilename: "morse_translation_ru.txt"
+    },
+    ch: {
+        title: "莫尔斯 <span>代码</span>",
+        placeholderText: "在这里输入你的消息…",
+        placeholderMorse: "输入莫尔斯代码…（例如 ... --- ... / 使用 / 代表空格）",
+        placeholderResult: "翻译结果将显示在这里…",
+        lblInput: "输入",
+        lblOutput: "输出",
+        btnPaste: "⌘ 粘贴",
+        btnCopyIn: "⎘ 复制输入",
+        btnClear: "✕ 清除",
+        modeTextMorse: "文本 → 莫尔斯",
+        modeMorseText: "莫尔斯 → 文本",
+        btnCopyOut: "⎘ 复制",
+        btnDownload: "↓ 下载",
+        downloadFilename: "morse_translation_ch.txt"
+    },
+    fr: {
+        title: "Code <span>Morse</span>",
+        placeholderText: "Tapez votre message ici…",
+        placeholderMorse: "Entrez le code morse… (ex. ... --- ... / utilisez / pour les espaces)",
+        placeholderResult: "La traduction apparaîtra ici…",
+        lblInput: "Entrée",
+        lblOutput: "Sortie",
+        btnPaste: "⌘ Coller",
+        btnCopyIn: "⎘ Copier l'entrée",
+        btnClear: "✕ Effacer",
+        modeTextMorse: "Texte → Morse",
+        modeMorseText: "Morse → Texte",
+        btnCopyOut: "⎘ Copier",
+        btnDownload: "↓ Télécharger",
+        downloadFilename: "morse traduction_fr.txt"
     }
+    
 };
+
+const langFixed = document.getElementById('langSelectorFixed');
+if (langFixed) {
+  ['hu', 'en', 'de', 'ru', 'ch', 'fr'].forEach(l => {
+    const b = document.createElement('button');
+    b.textContent = l.toUpperCase();
+    b.id = 'lang-' + l;
+    b.className = 'lang-btn';
+    b.setAttribute('style', `background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-family: var(--font-body); font-size: 11px; font-weight: bold; cursor: pointer; transition: all var(--transition); text-align: center;`);
+    b.onclick = () => changeLang(l);
+    langFixed.appendChild(b);
+  });
+}
 
 function updateUILanguage() {
     const langData = TRANSLATIONS[currentLang];
@@ -857,7 +904,7 @@ function togglePlay() {
 
   isPlaying = true;
   playBtn.classList.add('playing');
-  playBtn.innerHTML = '■ Stop <span class="waveform active" id="waveform"><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span></span>';
+  playBtn.innerHTML = '■ Stop <span class="waveform active" id="waveform"><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span> <span class="wave-bar"></span></span>';
 
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const freq = 620, dot = 0.075, dash = dot*3, symGap = dot, letGap = dot*3, wrdGap = dot*7;
@@ -909,7 +956,6 @@ updateUILanguage();
 
 let tapDown = 0, tapTimer = null;
 
-// ÚJ, STABIL HANGKEZELŐ RENDSZER (SEMMILYEN GYORS KATTINTÁSTÓL NEM AKAD BE)
 let tapCtx = null;
 let tapOsc = null;
 let tapGain = null;
@@ -924,7 +970,7 @@ function initTapAudio() {
   tapOsc.connect(tapGain);
   tapGain.connect(tapCtx.destination);
   
-  tapOsc.frequency.value = 620;
+  tapOsc.frequency.value = 600;
   tapOsc.type = 'sine';
   
   tapGain.gain.setValueAtTime(0, tapCtx.currentTime);
